@@ -8,67 +8,67 @@
  Author URI: http://yllus.com/
 */
 
-function wp_meilisearch_admin_init() {
-    wp_meilisearch_register_cross_post_settings();
-}
+require_once(WP_PLUGIN_DIR . '/' . basename(dirname(__FILE__)) . '/admin.php');
+require_once(WP_PLUGIN_DIR . '/' . basename(dirname(__FILE__)) . '/post-actions.php');
 
-function wp_meilisearch_plugins_loaded() {
-    add_action('admin_init', 'wp_meilisearch_admin_init');
-    add_action('admin_menu', 'wp_meilisearch_admin_menu');
-
-    add_action('admin_enqueue_scripts', 'wp_meilisearch_admin_enqueue_scripts');
-}
-add_action('plugins_loaded', 'wp_meilisearch_plugins_loaded');
-
-function wp_meilisearch_admin_menu() {
-    add_submenu_page("options-general.php", "MeiliSearch Settings", "MeiliSearch", 'manage_options', 'meilisearch_settings', 'wp_meilisearch_admin_menu_display');
-}
-
-function wp_meilisearch_admin_menu_display() { 
-    // Get our public, not-excluded from search post types.
-    $arr_post_types = get_post_types(array('public' => true, 'exclude_from_search' => false), 'objects');
-    
-    // Sort by the singular Name before we display the post types.
-    usort($arr_post_types, 'wp_meilisearch_sort_post_type_array');
-
-    // Retrieve the list of post types we've saved a setting for.
-    $arr_post_types_selected = get_option('meilisearch_post_types');
-
-    // Get a good default name for an index for the placeholder of that field.
-    $arr_url = parse_url(home_url());
-    $str_default_index_name = wp_meilisearch_get_name_as_slug($arr_url['host']);
-
-    // Retrieve our current values.
+function wp_meilisearch_index_document_now( $post_id ) {
+    // Retrieve our current MeiliSearch settings.
     $str_wp_meilisearch_url = get_option('wp_meilisearch_url', '');
     $str_wp_meilisearch_index = get_option('wp_meilisearch_index', '');
     $str_wp_meilisearch_master = get_option('wp_meilisearch_master', '');
-    $str_wp_meilisearch_public = get_option('wp_meilisearch_public', '');
 
-    require_once('html/settings.php'); 
+    if ( empty($str_wp_meilisearch_url) || empty($str_wp_meilisearch_index) || empty($str_wp_meilisearch_master) ) {
+        error_log('wp_meilisearch_index_document_now(): Wanted to index post ID #' . $post_id . ' but MeiliSearch settings were not provided.');
+
+        return false;
+    }
+
+    // Retrieve the full Post object from the database.
+    $post = get_post($post_id);
+    $post_type = get_post_type_object($post->post_type);
+
+    $post_content = $post->post_excerpt;
+    if ( empty($post_content) ) {
+        $post_content = $post->post_title;
+    }
+
+    // Assemble the document to be sent to MeiliSearch.
+    $obj_document = new stdClass;
+    $obj_document->objectID = $post->ID;
+    $obj_document->content = html_entity_decode(strip_tags($post_content));
+    $obj_document->url = get_permalink($post->ID);
+    $obj_document->anchor = $post->ID;
+    $obj_document->hierarchy_lvl0 = 'Content';
+    $obj_document->hierarchy_lvl1 = $post_type->labels->singular_name;
+    $obj_document->hierarchy_lvl2 = html_entity_decode($post->post_title);
+    $obj_document->hierarchy_lvl3 = 'null';
+    $obj_document->hierarchy_lvl4 = 'null';
+    $obj_document->hierarchy_lvl5 = 'null';
+    $obj_document->hierarchy_lvl6 = 'null';
+    $obj_document->content_type = 1;
+    $obj_document->date = $post->post_date;
+    $obj_document->date_gmt = $post->post_date_gmt;
+    $obj_document->timestamp_gmt = strtotime($obj_document->date_gmt);
+    $obj_document->modified = $post->post_modified;
+    $obj_document->modified_gmt = $post->post_modified_gmt;
+    $obj_document->title = html_entity_decode($post->post_title);
+
+    $arr_documents = array($obj_document);
+
+    // Actually make the HTTP POST to MeiliSearch.
+    $url = $str_wp_meilisearch_url . $str_wp_meilisearch_index . '/documents';
+    $args = array( 
+        'timeout' => 10,
+        'headers' => array( 
+            'X-Meili-API-Key' => $str_wp_meilisearch_master,
+        ), 
+        'body' => json_encode($arr_documents),
+    );
+    $request = wp_remote_post($url, $args);
+
+    debug_log(print_r($request, true));
+
+    return true;
 }
-
-function wp_meilisearch_register_cross_post_settings() {
-    register_setting('wp_meilisearch_options_group', 'wp_meilisearch_url');
-    register_setting('wp_meilisearch_options_group', 'wp_meilisearch_index');
-    register_setting('wp_meilisearch_options_group', 'wp_meilisearch_master');
-    register_setting('wp_meilisearch_options_group', 'wp_meilisearch_public');
-    register_setting('wp_meilisearch_options_group', 'meilisearch_post_types');
-}
-
-function wp_meilisearch_sort_post_type_array( $post_type_a, $post_type_b ) {
-    return strcasecmp($post_type_a->labels->singular_name, $post_type_b->labels->singular_name);
-}
-
-function wp_meilisearch_admin_enqueue_scripts() {
-    wp_enqueue_script('jquery');
-}
-
-function wp_meilisearch_get_name_as_slug( $name ) {
-    setlocale(LC_ALL, 'en_US.UTF8');
-
-    $name = iconv('UTF-8', 'ASCII//TRANSLIT', $name);
-    $name = preg_replace("/[^a-z0-9]+/i", "_", preg_replace("/[ \.']+/i", "_", strtolower($name)));
-
-    return $name;
-}
+add_action( 'wp_meilisearch_index_document', 'wp_meilisearch_index_document_now', 10, 1 );
 ?>
