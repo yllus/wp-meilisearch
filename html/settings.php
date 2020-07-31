@@ -60,6 +60,8 @@
                                 <td style="width: 25%;"><b>Actions:</b></td>
                                 <td>
                                     <input type="button" name="btn_create_index" id="btn_create_index" class="button button-primary" value="Create Index" disabled="disabled">
+                                    &nbsp;&nbsp;&nbsp;
+                                    <input type="button" name="btn_delete_index" id="btn_delete_index" class="button button-secondary" value="Delete Index" disabled="disabled">
                                 </td>
                             </tr>
                         </table>
@@ -79,6 +81,31 @@
                         jQuery( document ).on( "click", "#btn_create_index", function( event ) {
                             create_index();
                         });
+                        jQuery( document ).on( "click", "#btn_delete_index", function( event ) {
+                            delete_index();
+                        });
+
+                        function delete_index() {
+                            var str_index = jQuery('#wp_meilisearch_index').val();
+                            var str_url = jQuery('#wp_meilisearch_url').val() + 'indexes/' + str_index;
+
+                            if ( confirm('Are you sure you want to delete the existing index?') !== true ) {
+                                return;
+                            }
+
+                            jQuery.ajax({
+                                type: "DELETE",
+                                url: str_url,
+                                data: '',
+                                beforeSend: function( xhr ) { xhr.setRequestHeader('X-Meili-API-Key', jQuery('#wp_meilisearch_master').val()); },
+                                success: function( data ) { 
+                                    update_index_status();
+                                }, 
+                                error: function( data ) {
+                                    jQuery('#span_current_status').html('<b style="color: red;">An error occurred trying to delete the index; please verify that your Search Instance URL and Master Key values are correct.</b>');
+                                }
+                            });
+                        }
 
                         function create_index() {
                             var str_index = jQuery('#wp_meilisearch_index').val();
@@ -140,11 +167,13 @@
                                         jQuery('#span_current_status').html('<b style="color: green;">Ready</b>');
                                         jQuery('#span_num_documents').html( data.indexes['cfl'].numberOfDocuments );
                                         jQuery('#btn_create_index').attr('disabled', 'disabled');
+                                        jQuery('#btn_delete_index').removeAttr('disabled');
                                     }
                                     else {
                                         jQuery('#span_current_status').html('<b>Does Not Exist</b>');
                                         jQuery('#span_num_documents').html('?');
                                         jQuery('#btn_create_index').removeAttr('disabled');
+                                        jQuery('#btn_delete_index').attr('disabled', 'disabled');
                                     }
                                 }
                             });
