@@ -11,6 +11,37 @@
 require_once(WP_PLUGIN_DIR . '/' . basename(dirname(__FILE__)) . '/admin.php');
 require_once(WP_PLUGIN_DIR . '/' . basename(dirname(__FILE__)) . '/post-actions.php');
 
+function wp_meilisearch_delete_document_now( $post_id ) {
+    // Retrieve our current MeiliSearch settings.
+    $str_wp_meilisearch_url = get_option('wp_meilisearch_url', '');
+    $str_wp_meilisearch_index = get_option('wp_meilisearch_index', '');
+    $str_wp_meilisearch_master = get_option('wp_meilisearch_master', '');
+
+    if ( empty($str_wp_meilisearch_url) || empty($str_wp_meilisearch_index) || empty($str_wp_meilisearch_master) ) {
+        error_log('wp_meilisearch_delete_document_now(): Wanted to delete post ID #' . $post_id . ' from index but MeiliSearch settings were not provided.');
+
+        return false;
+    }
+
+    // Actually make the HTTP POST to MeiliSearch.
+    $url = $str_wp_meilisearch_url . 'indexes/' . $str_wp_meilisearch_index . '/documents/' . $post_id;
+    $args = array( 
+        'method'  => 'DELETE',
+        'timeout' => 10,
+        'headers' => array( 
+            'X-Meili-API-Key' => $str_wp_meilisearch_master,
+        ), 
+    );
+    $response = wp_remote_post($url, $args);
+
+    if ( is_wp_error( $response ) ) {
+        error_log('wp_meilisearch_delete_document_now(): Tried to delete post ID #' . $post->ID . ' from the MeiliSearch index at ' . $url . ' , failed with response code ' . $response['response']['code'] . '.');
+    }
+
+    return true;
+}
+add_action( 'wp_meilisearch_delete_document', 'wp_meilisearch_delete_document_now', 10, 1 );
+
 function wp_meilisearch_index_document_now( $post_id ) {
     // Retrieve our current MeiliSearch settings.
     $str_wp_meilisearch_url = get_option('wp_meilisearch_url', '');
@@ -53,22 +84,26 @@ function wp_meilisearch_index_document_now( $post_id ) {
     $obj_document->modified_gmt = $post->post_modified_gmt;
     $obj_document->title = html_entity_decode($post->post_title);
 
-    $arr_documents = array($obj_document);
+    $str_documents = json_encode(array($obj_document));
 
     // Actually make the HTTP POST to MeiliSearch.
-    $url = $str_wp_meilisearch_url . $str_wp_meilisearch_index . '/documents';
+    $url = $str_wp_meilisearch_url . 'indexes/' . $str_wp_meilisearch_index . '/documents';
     $args = array( 
         'timeout' => 10,
         'headers' => array( 
+            'Content-Type' => "application/json",
             'X-Meili-API-Key' => $str_wp_meilisearch_master,
         ), 
-        'body' => json_encode($arr_documents),
+        'body' => $str_documents,
     );
-    $request = wp_remote_post($url, $args);
+    $response = wp_remote_post($url, $args);
 
-    debug_log(print_r($request, true));
+    if ( is_wp_error( $response ) ) {
+        error_log('wp_meilisearch_index_document_now(): Tried to add post ID #' . $post->ID . ' to the MeiliSearch index at ' . $url . ' , failed with response code ' . $response['response']['code'] . '.');
+    }
 
     return true;
 }
 add_action( 'wp_meilisearch_index_document', 'wp_meilisearch_index_document_now', 10, 1 );
+
 ?>

@@ -22,7 +22,11 @@ function wp_meilisearch_transition_post_status( $new_status, $old_status, $post 
     }
 
     if ( $old_status == 'publish' && $new_status != 'publish' ) {
-        //pre_print_r('delete from meilisearch!');
+        // Remove existing cron event for this post if one exists.
+        wp_clear_scheduled_hook( 'wp_meilisearch_delete_document', array( 'post_id' => $post->ID ) );
+
+        // Schedule the document removal to occur.
+        wp_schedule_single_event( (time() + 10), 'wp_meilisearch_delete_document', array( $post->ID ) );
     }
 
     return true;
