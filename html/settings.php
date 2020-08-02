@@ -200,24 +200,44 @@
                                     <h3 style="margin: 0;">Post Type Settings</h3>
                                     <p>
                                         In this section you can configure what post types (types of content) will be indexed and made available from and on this WordPress website.
+                                        <br><br>
+                                        To display all search results in one big "group", set the Result Group # to <i>1</i> for all post types to the same number. To separate out some results and display them separately, use different numbers, keeping in mind that lower numbers are shown first in search results.
                                     </p>
                                 </td>
                             </tr>
                             <tr>
                                 <td style="width: 25%; vertical-align: top;"><b>Post Types To Index & Display Results For:</b></td>
                                 <td>
-                                    <table style="width: 100%;">
                                     <?php foreach ( $arr_post_types as $post_type ): ?>
+                                    <h4 style="margin: 0; font-size: 1.2em;"><b><?php echo __($post_type->labels->singular_name); ?></b> (<?php echo $post_type->name; ?>)</h4>
+                                    <table class="table_post_type" style="width: 100%;">
                                         <tr>
-                                            <td style="display: table-cell; padding-bottom: 0;">
-                                                <input type="checkbox" value="<?php echo $post_type->name; ?>" name="meilisearch_post_types[<?php echo $post_type->name; ?>]" <?php checked(!empty($arr_post_types_selected[$post_type->name])); ?> />
+                                            <td style="display: table-cell; padding: 5px 5px 5px 0; width: 50%;">
+                                                Include in search index and results:
                                             </td>
-                                            <td style="display: table-cell; padding-bottom: 0;">
-                                                <b><?php echo __($post_type->labels->singular_name); ?></b> (<?php echo $post_type->name; ?>)
+                                            <td style="display: table-cell; padding: 5px 5px 5px 0;">
+                                                <input type="checkbox" class="meilisearch_post_types_checkbox" value="<?php echo $post_type->name; ?>" name="meilisearch_post_types[<?php echo $post_type->name; ?>]" <?php checked(!empty($arr_post_types_selected[$post_type->name])); ?> />
                                             </td>
                                         </tr>
-                                    <?php endforeach; ?>
+                                        <tr>
+                                            <td style="display: table-cell; padding: 5px 5px 5px 0; width: 50%;">
+                                                Result Group # / Priority #:
+                                            </td>
+                                            <td style="display: table-cell; padding: 5px 5px 5px 0;">
+                                                <input type="text" class="meilisearch_post_type_priority_input" name="meilisearch_post_type_priority[<?php echo $post_type->name; ?>]" value="<?php echo ( !empty($arr_post_types_priority[$post_type->name]) ? $arr_post_types_priority[$post_type->name] : '' ) ?>" placeholder="" style="width: 75px;">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="display: table-cell; padding: 5px 5px 5px 0; width: 50%;">
+                                                Result Group Name:
+                                            </td>
+                                            <td style="display: table-cell; padding: 5px 5px 5px 0;">
+                                                <input type="text" class="meilisearch_group_names" name="meilisearch_group_names[<?php echo $post_type->name; ?>]" value="<?php echo ( !empty($arr_group_names[$post_type->name]) ? $arr_group_names[$post_type->name] : '' ) ?>" placeholder="" style="width: 250px;">
+                                            </td>
+                                        </tr>
                                     </table>
+                                    <br><br>
+                                    <?php endforeach; ?>
                                 </td>
                             </tr>
                             <tr>
@@ -258,6 +278,37 @@
                             check_allow_create_page();
                             update_search_results_url();
                         });
+                        jQuery( document ).on( "change", ".meilisearch_post_types_checkbox", function( event ) {
+                            set_default_result_group();
+                        });
+
+                        function set_default_result_group() {
+                            var arr_checkboxes = jQuery('.meilisearch_post_types_checkbox');
+
+                            for ( var i = 0; i < arr_checkboxes.length; i++ ) {
+                                var arr_post_type_priority_fields = jQuery(arr_checkboxes[i]).closest('.table_post_type').find('.meilisearch_post_type_priority_input');
+                                var arr_group_name_fields = jQuery(arr_checkboxes[i]).closest('.table_post_type').find('.meilisearch_group_names');
+
+                                if ( arr_checkboxes[i].checked == true ) {
+                                    if ( arr_post_type_priority_fields[0].value.length == 0 ) {
+                                        arr_post_type_priority_fields[0].value = '1';
+                                    }
+                                    if ( arr_group_name_fields[0].value.length == 0 ) {
+                                        arr_group_name_fields[0].value = 'Content';
+                                    }
+
+                                    arr_post_type_priority_fields[0].disabled = false;
+                                    arr_group_name_fields[0].disabled = false;
+                                }
+                                else {
+                                    arr_post_type_priority_fields[0].value = '';
+                                    arr_post_type_priority_fields[0].disabled = 'disabled';
+                                    arr_group_name_fields[0].value = '';
+                                    arr_group_name_fields[0].disabled = 'disabled';
+                                }
+                            }
+                        }
+                        set_default_result_group();
 
                         function update_search_results_url() {
                             var str_wp_home_url = '<?php echo get_bloginfo('url'); ?>';

@@ -58,31 +58,32 @@ function wp_meilisearch_index_document_now( $post_id ) {
     $post = get_post($post_id);
     $post_type = get_post_type_object($post->post_type);
 
-    $post_content = $post->post_excerpt;
-    if ( empty($post_content) ) {
-        $post_content = $post->post_title;
-    }
+    // Retrieve the list of post types priorities numbers/levels that have been set.
+    $arr_post_types_priority = get_option('meilisearch_post_type_priority', array());
+
+    // Retrieve the list of group names that have been set.
+    $arr_group_names = get_option('meilisearch_group_names', array());
 
     // Assemble the document to be sent to MeiliSearch.
     $obj_document = new stdClass;
     $obj_document->objectID = $post->ID;
-    $obj_document->content = wp_meilisearch_get_the_excerpt_max_charlength($post->ID);
-    $obj_document->url = get_permalink($post->ID);
-    $obj_document->anchor = $post->ID;
-    $obj_document->hierarchy_lvl0 = 'Content';
-    $obj_document->hierarchy_lvl1 = $post_type->labels->singular_name;
+    $obj_document->content_type = $arr_post_types_priority[$post->post_type];
+    $obj_document->hierarchy_lvl0 = $arr_group_names[$post->post_type];
+    $obj_document->hierarchy_lvl1 = __($post_type->labels->singular_name);
     $obj_document->hierarchy_lvl2 = html_entity_decode($post->post_title);
     $obj_document->hierarchy_lvl3 = 'null';
     $obj_document->hierarchy_lvl4 = 'null';
     $obj_document->hierarchy_lvl5 = 'null';
     $obj_document->hierarchy_lvl6 = 'null';
-    $obj_document->content_type = 1;
+    $obj_document->anchor = $post->ID;
     $obj_document->date = $post->post_date;
     $obj_document->date_gmt = $post->post_date_gmt;
     $obj_document->timestamp_gmt = strtotime($obj_document->date_gmt);
     $obj_document->modified = $post->post_modified;
     $obj_document->modified_gmt = $post->post_modified_gmt;
     $obj_document->title = html_entity_decode($post->post_title);
+    $obj_document->content = wp_meilisearch_get_the_excerpt_max_charlength($post->ID);
+    $obj_document->url = get_permalink($post->ID);
 
     $str_documents = json_encode(array($obj_document));
 

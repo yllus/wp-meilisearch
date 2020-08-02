@@ -25,6 +25,12 @@ function wp_meilisearch_admin_menu_display() {
     // Retrieve the list of post types we've saved a setting for.
     $arr_post_types_selected = get_option('meilisearch_post_types', array());
 
+    // Retrieve the list of post types priorities numbers/levels that have been set.
+    $arr_post_types_priority = get_option('meilisearch_post_type_priority', array());
+
+    // Retrieve the list of result group names that have been set.
+    $arr_group_names = get_option('meilisearch_group_names', array());
+
     // Get a good default name for an index for the placeholder of that field.
     $arr_url = parse_url(home_url());
     $str_default_index_name = wp_meilisearch_get_name_as_slug($arr_url['host']);
@@ -47,6 +53,8 @@ function wp_meilisearch_register_cross_post_settings() {
     register_setting('wp_meilisearch_options_group', 'wp_meilisearch_master');
     register_setting('wp_meilisearch_options_group', 'wp_meilisearch_public');
     register_setting('wp_meilisearch_options_group', 'meilisearch_post_types');
+    register_setting('wp_meilisearch_options_group', 'meilisearch_post_type_priority');
+    register_setting('wp_meilisearch_options_group', 'meilisearch_group_names');
     register_setting('wp_meilisearch_options_group', 'wp_meilisearch_page_slug');
 }
 
