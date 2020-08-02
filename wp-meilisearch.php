@@ -10,6 +10,7 @@
 
 require_once(WP_PLUGIN_DIR . '/' . basename(dirname(__FILE__)) . '/admin.php');
 require_once(WP_PLUGIN_DIR . '/' . basename(dirname(__FILE__)) . '/post-actions.php');
+require_once(WP_PLUGIN_DIR . '/' . basename(dirname(__FILE__)) . '/shortcodes.php');
 
 function wp_meilisearch_delete_document_now( $post_id ) {
     // Retrieve our current MeiliSearch settings.
@@ -58,6 +59,14 @@ function wp_meilisearch_index_document_now( $post_id ) {
     $post = get_post($post_id);
     $post_type = get_post_type_object($post->post_type);
 
+    // Figure out if there's a featured image to display.
+    $url_thumbnail = '';
+    $attachment_id = get_post_thumbnail_id($post->ID); 
+    if ( !empty($attachment_id) ) {
+        $arr_url_thumbnail = wp_get_attachment_image_src( $attachment_id, 'thumbnail' );
+        $url_thumbnail = $arr_url_thumbnail[0];
+    }
+
     // Retrieve the list of post types priorities numbers/levels that have been set.
     $arr_post_types_priority = get_option('meilisearch_post_type_priority', array());
 
@@ -84,6 +93,7 @@ function wp_meilisearch_index_document_now( $post_id ) {
     $obj_document->title = html_entity_decode($post->post_title);
     $obj_document->content = wp_meilisearch_get_the_excerpt_max_charlength($post->ID);
     $obj_document->url = get_permalink($post->ID);
+    $obj_document->url_thumbnail = $url_thumbnail;
 
     $str_documents = json_encode(array($obj_document));
 
