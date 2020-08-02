@@ -50,6 +50,61 @@ function wp_meilisearch_register_cross_post_settings() {
     register_setting('wp_meilisearch_options_group', 'wp_meilisearch_page_slug');
 }
 
+function wp_meilisearch_get_page_status_ajax() {
+    $obj_response = new stdClass();
+    $obj_response->page_exists = 0;
+    $obj_response->page_is_published = 0;
+    $obj_response->page_shortcode_input_exists = 0;
+    $obj_response->page_shortcode_results_exists = 0;
+
+    $str_page_slug = $_GET['page_slug'];
+
+    // Check to see if a Page at the given slug exists.
+    $args = array(
+        'name'        => $str_page_slug,
+        'post_type'   => 'page',
+        'numberposts' => 1,
+    );
+    $arr_posts = get_posts($args);
+
+    // If no Page exists, return that response.
+    if ( empty($arr_posts) ) {
+        $obj_response->page_exists = 0;
+
+        echo json_encode($obj_response);
+        exit;
+    }
+    else {
+        $obj_response->page_exists = 1;
+    }
+
+    // If the Page isn't published, send that info back.
+    if ( $arr_posts[0]->post_status != 'publish' ) {
+        $obj_response->page_exists = 1;
+        $obj_response->page_is_published = 0;
+
+        echo json_encode($obj_response);
+        exit;
+    }
+    else {
+        $obj_response->page_is_published = 1;
+    }
+
+    // Check to see if the [wp_meilisearch_input] shortcode is in the post body.
+    if ( strpos($arr_posts[0]->post_content, '[wp_meilisearch_input]') !== false ) {
+        $obj_response->page_shortcode_input_exists = 1;
+    }
+
+    // Check to see if the [wp_meilisearch_results] shortcode is in the post body.
+    if ( strpos($arr_posts[0]->post_content, '[wp_meilisearch_results]') !== false ) {
+        $obj_response->page_shortcode_results_exists = 1;
+    }
+
+    echo json_encode($obj_response);
+    exit;
+}
+add_action( 'wp_ajax_wp_meilisearch_get_page_status', 'wp_meilisearch_get_page_status_ajax' );
+
 function wp_meilisearch_sort_post_type_array( $post_type_a, $post_type_b ) {
     return strcasecmp($post_type_a->labels->singular_name, $post_type_b->labels->singular_name);
 }
@@ -57,6 +112,16 @@ function wp_meilisearch_sort_post_type_array( $post_type_a, $post_type_b ) {
 function wp_meilisearch_admin_enqueue_scripts() {
     wp_enqueue_script('jquery');
 }
+
+// Flush rewrite rules on the site when this plug-in is activated so our AJAX handlers get registered.
+function wp_meilisearch_flush_rewrite_rules( $value ) {
+    global $wp_rewrite;
+
+    $wp_rewrite->flush_rules( false );
+
+    return $value;
+}
+register_activation_hook( __FILE__, 'wp_meilisearch_flush_rewrite_rules' );
 
 function wp_meilisearch_get_name_as_slug( $name ) {
     setlocale(LC_ALL, 'en_US.UTF8');

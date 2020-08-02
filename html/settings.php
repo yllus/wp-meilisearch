@@ -244,7 +244,7 @@
                             </tr>
                             <tr valign="top">
                                 <td style="width: 25%;"><b>Current Status:</b></td>
-                                <td><span id="span_current_status">Unknown</span></td>
+                                <td><span id="span_current_status_page">Unknown</span></td>
                             </tr>
                             <tr>
                                 <td style="width: 25%;"><b>Actions:</b></td>
@@ -266,6 +266,7 @@
                                 return;
                             }
 
+                            jQuery('#wp_meilisearch_results_url').attr('href', str_wp_home_url + '/' + str_wp_meilisearch_page_slug);
                             jQuery('#wp_meilisearch_results_url').html(str_wp_home_url + '/' + str_wp_meilisearch_page_slug);
                         }
                         update_search_results_url();
@@ -281,6 +282,46 @@
                             }
                         }
                         check_allow_create_page();
+
+                        function check_search_result_page_status() {
+                            var str_wp_meilisearch_page_slug = jQuery('#wp_meilisearch_page_slug').val();
+                            if ( str_wp_meilisearch_page_slug.length == 0 ) {
+                                return;
+                            }
+
+                            jQuery.ajax({
+                                type: "GET",
+                                url: '/wp-admin/admin-ajax.php?action=wp_meilisearch_get_page_status&page_slug=' + str_wp_meilisearch_page_slug,
+                                data: {},
+                                contentType: "application/json",
+                                dataType: 'json', 
+                                success: function( data ) { 
+                                    if ( data.page_exists == 0 ) {
+                                        jQuery('#span_current_status_page').html('<b style="color: red;">Does not exist; click the <i>Create Page</i> button found below to generate a search results page for MeiliSearch.</b>');
+
+                                        return;
+                                    }
+
+                                    if ( data.page_is_published == 0 ) {
+                                        jQuery('#span_current_status_page').html('<b style="color: #FF8333;">Page exists but is not in the Published status for it to be available to the public.</b>');
+                                        jQuery('#btn_create_page').attr('disabled', 'disabled');
+
+                                        return;
+                                    }
+
+                                    if ( data.page_shortcode_input_exists == 0 || data.page_shortcode_results_exists == 0 ) { 
+                                        jQuery('#span_current_status_page').html('<b style="color: #FF8333;">Page exists but the <i>[wp_meilisearch_input]</i> and <i>[wp_meilisearch_results]</i> shortcodes may not be present on it. This may not be an issue if you\'ve manually coded this page to show MeiliSearch results.</b>');
+                                        jQuery('#btn_create_page').attr('disabled', 'disabled');
+
+                                        return;
+                                    }
+
+                                    jQuery('#span_current_status_page').html('<b style="color: green;">Published / Ready</b>');
+                                    jQuery('#btn_create_page').attr('disabled', 'disabled');
+                                }
+                            });
+                        }
+                        check_search_result_page_status();
                         </script>
                     </fieldset>
                 </td>                           
