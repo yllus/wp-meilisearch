@@ -91,7 +91,7 @@ function wp_meilisearch_index_document_now( $post_id ) {
     $obj_document->modified = $post->post_modified;
     $obj_document->modified_gmt = $post->post_modified_gmt;
     $obj_document->title = html_entity_decode($post->post_title);
-    $obj_document->content = wp_meilisearch_get_the_excerpt_max_charlength($post->ID);
+    $obj_document->content = html_entity_decode(wp_meilisearch_get_the_excerpt_max_charlength($post->ID));
     $obj_document->url = get_permalink($post->ID);
     $obj_document->url_thumbnail = $url_thumbnail;
 

@@ -25,8 +25,16 @@
 
     function triggerSearch() {
         var index = '<?php echo $str_wp_meilisearch_index; ?>';
+        var search_value = search.value;
 
-        let theUrl = `${baseUrl}indexes/${index}/search?q=${search.value}&attributesToHighlight=*`;
+        if ( search_value.length == 0 ) {
+        	results.innerHTML = '';
+        }
+        if ( search_value.length < 2 ) {
+        	return;
+        }
+
+        let theUrl = `${baseUrl}indexes/${index}/search?q=${search_value}&attributesToHighlight=*`;
 
         if (lastRequest) { lastRequest.abort() }
         lastRequest = new XMLHttpRequest();
@@ -45,7 +53,7 @@
                 //time.innerHTML = `${processingTimeMs}ms`;
                 //count.innerHTML = `${numberOfDocuments}`;
 
-                for (result of httpResults.hits) {
+                for (result of httpResults.hits) {	
                     const element = {...result, ...result._formatted };
                     delete element._formatted;
 

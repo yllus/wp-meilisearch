@@ -121,13 +121,13 @@
                                 beforeSend: function( xhr ) { xhr.setRequestHeader('X-Meili-API-Key', jQuery('#wp_meilisearch_master').val()); },
                                 success: function( data ) { 
                                     var str_index = jQuery('#wp_meilisearch_index').val();
-                                    var str_url = jQuery('#wp_meilisearch_url').val() + 'indexes/' + str_index + '/settings/ranking-rules';
+                                    var str_url = jQuery('#wp_meilisearch_url').val() + 'indexes/' + str_index + '/settings';
 
                                     // Next, customize our ranking rules.
                                     jQuery.ajax({
                                         type: "POST",
                                         url: str_url,
-                                        data: '["asc(content_type)", "desc(timestamp_gmt)", "exactness", "words", "wordsPosition", "proximity", "attribute", "typo" ]',
+                                        data: '{ "rankingRules": ["asc(content_type)", "desc(timestamp_gmt)", "exactness", "words", "wordsPosition", "proximity", "attribute", "typo" ], "searchableAttributes": ["title", "content"], "displayedAttributes": ["title", "content", "content_type", "hierarchy_lvl0", "hierarchy_lvl1", "hierarchy_lvl2", "url", "url_thumbnail", "date"] }',
                                         contentType: "application/json",
                                         dataType: 'json', 
                                         beforeSend: function( xhr ) { xhr.setRequestHeader('X-Meili-API-Key', jQuery('#wp_meilisearch_master').val()); },
