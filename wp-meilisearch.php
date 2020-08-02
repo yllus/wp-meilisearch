@@ -66,7 +66,7 @@ function wp_meilisearch_index_document_now( $post_id ) {
     // Assemble the document to be sent to MeiliSearch.
     $obj_document = new stdClass;
     $obj_document->objectID = $post->ID;
-    $obj_document->content = html_entity_decode(strip_tags($post_content));
+    $obj_document->content = wp_meilisearch_get_the_excerpt_max_charlength($post->ID);
     $obj_document->url = get_permalink($post->ID);
     $obj_document->anchor = $post->ID;
     $obj_document->hierarchy_lvl0 = 'Content';
@@ -106,4 +106,34 @@ function wp_meilisearch_index_document_now( $post_id ) {
 }
 add_action( 'wp_meilisearch_index_document', 'wp_meilisearch_index_document_now', 10, 1 );
 
+function wp_meilisearch_get_the_excerpt_max_charlength( $post_id, $charlength = 200 ) {
+    $str_output = '';
+
+    $excerpt = apply_filters('the_excerpt', get_post_field('post_excerpt', $post_id));
+    if ( strlen($excerpt) == 0 ) {
+        $excerpt = apply_filters('the_excerpt', get_post_field('post_content', $post_id));
+    }
+
+    $excerpt = strip_shortcodes($excerpt);
+    $excerpt = strip_tags($excerpt);
+
+    $charlength++;
+
+    if ( mb_strlen( $excerpt ) > $charlength ) {
+        $subex = mb_substr( $excerpt, 0, $charlength - 5 );
+        $exwords = explode( ' ', $subex );
+        $excut = - ( mb_strlen( $exwords[ count( $exwords ) - 1 ] ) );
+        if ( $excut < 0 ) {
+            $str_output = $str_output . mb_substr( $subex, 0, $excut );
+        } else {
+            $str_output = $str_output . $subex;
+        }
+        $str_output = $str_output . '...';
+    } 
+    else {
+        $str_output = $str_output . $excerpt;
+    }
+
+    return $str_output;
+}
 ?>
