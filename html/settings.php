@@ -186,34 +186,105 @@
 
             <tr valign="top">
                 <td colspan="2" style="padding: 0;">
-                    <br><br>
+                    <br>
 
                     <h2>WordPress Settings</h2>
-
-                    <p>
-                        In this section you can configure what types of content will be indexed and made available from and on this WordPress website.
-                    </p>
                 </td>
             </tr>
-            <tr valign="top">
-                <th scope="row">Automatically index and display results from these post types:</th>
-                <td>
-                    <fieldset>
+            <tr>
+                <td colspan="2" style="padding-left: 0;">
+                    <fieldset style="margin: 0; padding: 5px;">
                         <table style="width: 100%;">
-                        <?php foreach ( $arr_post_types as $post_type ): ?>
                             <tr>
-                                <td style="display: table-cell; padding-bottom: 0;">
-                                    <input type="checkbox" value="<?php echo $post_type->name; ?>" name="meilisearch_post_types[<?php echo $post_type->name; ?>]" <?php checked(!empty($arr_post_types_selected[$post_type->name])); ?> />
-                                </td>
-                                <td style="display: table-cell; padding-bottom: 0;">
-                                    <b><?php echo __($post_type->labels->singular_name); ?></b> (<?php echo $post_type->name; ?>)
+                                <td colspan="2">
+                                    <h3 style="margin: 0;">Post Type Settings</h3>
+                                    <p>
+                                        In this section you can configure what post types (types of content) will be indexed and made available from and on this WordPress website.
+                                    </p>
                                 </td>
                             </tr>
-                        <?php endforeach; ?>
+                            <tr>
+                                <td style="width: 25%; vertical-align: top;"><b>Post Types To Index & Display Results For:</b></td>
+                                <td>
+                                    <table style="width: 100%;">
+                                    <?php foreach ( $arr_post_types as $post_type ): ?>
+                                        <tr>
+                                            <td style="display: table-cell; padding-bottom: 0;">
+                                                <input type="checkbox" value="<?php echo $post_type->name; ?>" name="meilisearch_post_types[<?php echo $post_type->name; ?>]" <?php checked(!empty($arr_post_types_selected[$post_type->name])); ?> />
+                                            </td>
+                                            <td style="display: table-cell; padding-bottom: 0;">
+                                                <b><?php echo __($post_type->labels->singular_name); ?></b> (<?php echo $post_type->name; ?>)
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="width: 25%;"><b>Actions:</b></td>
+                                <td>
+                                    <input type="button" name="btn_reindex" id="btn_reindex" class="button button-primary" value="Re-index All Content" disabled="disabled">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    <h3 style="margin: 0;">Search Page Settings</h3>
+                                    <p>
+                                        In this area, you can define the settings for the page where search results from MeiliSearch will be displayed. If this Page exists, all searches on this WordPress site will be redirected to it.
+                                    </p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="width: 25%;"><b>Search Page Slug:</b></td>
+                                <td>
+                                    <input type="text" name="wp_meilisearch_page_slug" id="wp_meilisearch_page_slug" value="<?php echo $str_wp_meilisearch_page_slug; ?>" placeholder="search" style="width: 350px;">
+                                    <br>
+                                    <span class="description">Search results will be displayed at the URL: <a target="_blank" id="wp_meilisearch_results_url" href=""></a></span>
+                                </td>
+                            </tr>
+                            <tr valign="top">
+                                <td style="width: 25%;"><b>Current Status:</b></td>
+                                <td><span id="span_current_status">Unknown</span></td>
+                            </tr>
+                            <tr>
+                                <td style="width: 25%;"><b>Actions:</b></td>
+                                <td>
+                                    <input type="button" name="btn_create_page" id="btn_create_page" class="button button-primary" value="Create Page" disabled="disabled">
+                                </td>
+                            </tr>
                         </table>
+                        <script>
+                        jQuery( document ).on( "keyup", "#wp_meilisearch_page_slug", function( event ) {
+                            check_allow_create_page();
+                            update_search_results_url();
+                        });
+
+                        function update_search_results_url() {
+                            var str_wp_home_url = '<?php echo get_bloginfo('url'); ?>';
+                            var str_wp_meilisearch_page_slug = jQuery('#wp_meilisearch_page_slug').val();
+                            if ( str_wp_meilisearch_page_slug.length == 0 ) {
+                                return;
+                            }
+
+                            jQuery('#wp_meilisearch_results_url').html(str_wp_home_url + '/' + str_wp_meilisearch_page_slug);
+                        }
+                        update_search_results_url();
+
+                        function check_allow_create_page() {
+                            var str_wp_meilisearch_page_slug = jQuery('#wp_meilisearch_page_slug').val();
+
+                            if ( str_wp_meilisearch_page_slug.length > 0 ) {
+                                jQuery('#btn_create_page').removeAttr('disabled');
+                            }
+                            else {
+                                jQuery('#btn_create_page').attr('disabled', 'disabled');
+                            }
+                        }
+                        check_allow_create_page();
+                        </script>
                     </fieldset>
                 </td>                           
-            </tr>                    
+            </tr>
         </table>            
         <?php submit_button(); ?>
     </form>                

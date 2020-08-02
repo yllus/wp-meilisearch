@@ -34,16 +34,20 @@ function wp_meilisearch_admin_menu_display() {
     $str_wp_meilisearch_index = get_option('wp_meilisearch_index', '');
     $str_wp_meilisearch_master = get_option('wp_meilisearch_master', '');
     $str_wp_meilisearch_public = get_option('wp_meilisearch_public', '');
+    $str_wp_meilisearch_page_slug = get_option('wp_meilisearch_page_slug', '');
 
+    // Actually display the admin page.
     require_once('html/settings.php'); 
 }
 
+// Instruct WordPress to keep our needed settings as 'options'.
 function wp_meilisearch_register_cross_post_settings() {
     register_setting('wp_meilisearch_options_group', 'wp_meilisearch_url');
     register_setting('wp_meilisearch_options_group', 'wp_meilisearch_index');
     register_setting('wp_meilisearch_options_group', 'wp_meilisearch_master');
     register_setting('wp_meilisearch_options_group', 'wp_meilisearch_public');
     register_setting('wp_meilisearch_options_group', 'meilisearch_post_types');
+    register_setting('wp_meilisearch_options_group', 'wp_meilisearch_page_slug');
 }
 
 function wp_meilisearch_sort_post_type_array( $post_type_a, $post_type_b ) {
