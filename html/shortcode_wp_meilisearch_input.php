@@ -88,7 +88,7 @@
                 	}
                 }
 
-                document.getElementById('wp_m_stats').innerHTML = 'Showing results ' + num_start_results + ' - ' + num_end_results + ' for: “' + httpResults.query + '“';
+                document.getElementById('wp_m_stats').innerHTML = 'Showing results ' + num_start_results + ' - ' + num_end_results + ' for: “' + httpResults.query + '“ (' + httpResults.nbHits + ' total)';
 
                 //time.innerHTML = `${processingTimeMs}ms`;
                 //count.innerHTML = `${numberOfDocuments}`;
