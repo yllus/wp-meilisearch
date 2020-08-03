@@ -1,4 +1,4 @@
-<link rel="stylesheet" id="wp-meilisearch-css"  href="<?php echo plugin_dir_url(__FILE__) . 'css/wp-meilisearch.css'; ?>" type="text/css" media="all" />
+<link rel="stylesheet" id="wp-meilisearch-css"  href="<?php echo plugin_dir_url(__FILE__) . 'css/wp-meilisearch.css?_t=202008031929'; ?>" type="text/css" media="all" />
 
 <div class="rsp_section rsp_group">
 	<div class="rsp_col rsp_span_12_of_12">
