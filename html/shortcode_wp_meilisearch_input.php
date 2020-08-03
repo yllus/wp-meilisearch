@@ -27,7 +27,7 @@
         var index = '<?php echo $str_wp_meilisearch_index; ?>';
         var search_value = search.value;
 
-        if ( search_value.length == 0 ) {
+        if ( search_value.length == 0 && typeof results !== 'undefined' ) {
         	results.innerHTML = '';
         }
         if ( search_value.length < 2 ) {
