@@ -1,0 +1,158 @@
+/*
+HOW IT WORKS
+
+.rsp_section
+splits up the page horizontally. You'll need a few of these to break up the content, and you can use them in your main wrapper, or within other divs.
+
+.rsp_col
+divides the section into columns. Each column has a left margin except the first one. Using .rsp_col:first-child { margin-left: 0; } means you don't need to use class="last" anywhere. It works in all browsers since IE6.
+
+.rsp_group
+solves floating problems, by forcing the section to self clear its children (aka the clearfix hack). This is good in Firefox 3.5+, Safari 4+, Chrome, Opera 9+ and IE 6+.
+
+.rsp_span_1_of_3
+specifies the width of the column. Using percentages means it's 100% fluid.
+
+@media queries
+as soon as the screen size gets less than 480 pixels the columns stack and the margins disappear.
+
+MORE INFORMATION: http://www.responsivegridsystem.com/calculator/
+*/
+/*  SECTIONS  */
+.rsp_section {
+	clear: both;
+	padding: 0px;
+	margin: 0px;
+}
+
+/*  COLUMN SETUP  */
+.rsp_col {
+	display: block;
+	float:left;
+	margin: 1% 0 1% 1.6%;
+}
+.rsp_col:first-child { margin-left: 0; }
+
+/*  GROUPING  */
+.rsp_group:before,
+.rsp_group:after { content:""; display:table; }
+.rsp_group:after { clear:both;}
+.rsp_group { zoom:1; /* For IE 6/7 */ }
+/*  GRID OF TWELVE  */
+.rsp_span_12_of_12 {
+	width: 100%;
+}
+
+.rsp_span_11_of_12 {
+  	width: 91.53%;
+}
+.rsp_span_10_of_12 {
+  	width: 83.06%;
+}
+
+.rsp_span_9_of_12 {
+  	width: 74.6%;
+}
+
+.rsp_span_8_of_12 {
+  	width: 66.13%;
+}
+
+.rsp_span_7_of_12 {
+  	width: 57.66%;
+}
+
+.rsp_span_6_of_12 {
+  	width: 49.2%;
+}
+
+.rsp_span_5_of_12 {
+  	width: 40.73%;
+}
+
+.rsp_span_4_of_12 {
+  	width: 32.26%;
+}
+
+.rsp_span_3_of_12 {
+  	width: 23.8%;
+}
+
+.rsp_span_2_of_12 {
+  	width: 15.33%;
+}
+
+.rsp_span_1_of_12 {
+  	width: 6.866%;
+}
+
+/*  GO FULL WIDTH BELOW 480 PIXELS */
+@media only screen and (max-width: 480px) {
+	.rsp_col {  margin: 1% 0 1% 0%; }
+    
+  .rsp_span_1_of_12, .rsp_span_2_of_12, .rsp_span_3_of_12, .rsp_span_4_of_12, .rsp_span_5_of_12, .rsp_span_6_of_12, .rsp_span_7_of_12, .rsp_span_8_of_12, .rsp_span_9_of_12, .rsp_span_10_of_12, .rsp_span_11_of_12, .rsp_span_12_of_12 {
+    width: 100%; 
+	}
+}
+
+/* Shortcode Styling */
+#wp_m_search_container {
+  text-align: center; 
+  position: relative;
+}
+
+#wp_m_search_container #wp_m_magnify { 
+  position: absolute; 
+  top: 9px; 
+  left: 9px;
+}
+
+#wp_m_search_container #search { 
+  font-size: 36px; 
+  width: 100%; 
+  text-indent: 45px;
+}
+
+#wp_m_stats {
+  font-size: 18px;
+  font-style: italic;
+}
+
+.wp_m_result {
+  list-style-type: none; 
+  padding-top: 20px; 
+  margin-top: 20px; 
+  border-top: 2px solid #eeeeee;
+}
+
+.wp_m_result .wp_m_metadata {
+  font-size: 0.8em;
+  color: #77797a;
+  margin-bottom: 4px;
+}
+
+.wp_m_result .wp_m_title {
+  font-size: 1.4em;
+  line-height: 1.4;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.wp_m_result .wp_m_image {
+  padding-top: 30px;
+}
+
+.wp_m_result .wp_m_image img {
+  max-width: 100%;
+  max-height: 150px;
+}
+
+.wp_m_result .rsp_span_9_of_12 .wp_m_title, .wp_m_result .rsp_span_9_of_12 .wp_m_content {
+  padding-right: 7px;
+}
+
+em {
+  color: hsl(204, 86%, 25%);
+  font-style: inherit;
+  background-color: hsl(204, 86%, 88%);
+}
