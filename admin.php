@@ -58,6 +58,20 @@ function wp_meilisearch_register_cross_post_settings() {
     register_setting('wp_meilisearch_options_group', 'wp_meilisearch_page_slug');
 }
 
+function wp_meilisearch_reindex_all_content_ajax() {
+    $obj_response = new stdClass();
+    $obj_response->success = 0;
+
+    $bool_result = wp_meilisearch_reindex_all_content();
+    if ( $bool_result == true ) {
+        $obj_response->success = 1;
+    }
+
+    echo json_encode($obj_response);
+    exit;
+}
+add_action( 'wp_ajax_wp_meilisearch_reindex_all_content', 'wp_meilisearch_reindex_all_content_ajax' );
+
 function wp_meilisearch_get_page_status_ajax() {
     $obj_response = new stdClass();
     $obj_response->page_exists = 0;

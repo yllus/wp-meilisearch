@@ -243,7 +243,7 @@
                             <tr>
                                 <td style="width: 25%;"><b>Actions:</b></td>
                                 <td>
-                                    <input type="button" name="btn_reindex" id="btn_reindex" class="button button-primary" value="Re-index All Content" disabled="disabled">
+                                    <input type="button" name="btn_reindex" id="btn_reindex" class="button button-primary" value="Re-index All Content"> <span style="margin-left: 5px; line-height: 1.5;" id="span_status_reindex"></span>
                                 </td>
                             </tr>
                             <tr>
@@ -280,6 +280,26 @@
                         });
                         jQuery( document ).on( "change", ".meilisearch_post_types_checkbox", function( event ) {
                             set_default_result_group();
+                        });
+                        jQuery( document ).on( "click", "#btn_reindex", function( event ) {
+                            jQuery('#btn_reindex').attr('disabled', 'disabled');
+
+                            jQuery.ajax({
+                                type: "GET",
+                                url: '/wp-admin/admin-ajax.php?action=wp_meilisearch_reindex_all_content',
+                                data: {},
+                                contentType: "application/json",
+                                dataType: 'json', 
+                                success: function( data ) { 
+                                    if ( data.success == 1 ) {
+                                        jQuery('#span_status_reindex').html('<b style="color: green;">All selected post types now scheduled for indexing.</b>');
+                                    }
+                                    else {
+                                        jQuery('#span_status_reindex').html('<b style="color: red;">An unknown error occurred.</b>');
+                                        jQuery('#btn_reindex').removeAttr('disabled', 'disabled');
+                                    }
+                                }
+                            });
                         });
 
                         function set_default_result_group() {
