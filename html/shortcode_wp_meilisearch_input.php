@@ -30,14 +30,31 @@
         return xmlHttp.responseText;
     }
 
+    function getUrlParameter(sParam) {
+        var sPageURL = window.location.search.substring(1),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
+
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
+
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+            }
+        }
+    };
+
     let lastRequest = undefined;
 
     function triggerSearch() {
         var index = '<?php echo $str_wp_meilisearch_index; ?>';
         var search_value = search.value;
 
-        if ( search_value.length == 0 && typeof results !== 'undefined' ) {
-        	results.innerHTML = '';
+        if ( search_value.length == 0 ) {
+            if ( typeof results !== 'undefined' ) {
+                results.innerHTML = '';
+            }
 
             return;
         }
@@ -66,9 +83,16 @@
                 bool_one_post_type_checked = true;
             }
         }
-        str_filters = '(' + str_filters_hierarchy_lvl1 + ')';
+        if ( str_filters_hierarchy_lvl1.length > 0 ) {
+            str_filters = '"filters": "(' + str_filters_hierarchy_lvl1 + ')", ';
+        }
 
-        var params = `{ "q": "${search_value}", "attributesToHighlight": ["*"], "filters": "${str_filters}" }`;
+        if ( history.pushState ) {
+            var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?q=' + search_value;
+            window.history.pushState({path:newurl},'',newurl);
+        }
+
+        var params = `{ "q": "${search_value}", ${str_filters} "attributesToHighlight": ["*"] }`;
 
         lastRequest.onload = function (e) {
             if (lastRequest.readyState === 4 && lastRequest.status === 200) {
@@ -132,6 +156,12 @@
 
     let baseUrl = '<?php echo $str_wp_meilisearch_url; ?>';
     let apiKey = '<?php echo $str_wp_meilisearch_public; ?>';
+
+    // Ready in our search parameter from the URL (if there is one).
+    var str_q = getUrlParameter('q');
+    if ( typeof str_q !== 'undefined' ) {
+        search.value = str_q;
+    }
 
     search.oninput = triggerSearch;
 
