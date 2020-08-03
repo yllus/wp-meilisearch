@@ -79,6 +79,12 @@
                 	var str_image = '';
                 	var str_col_width_main = 'rsp_span_12_of_12';
 
+                    var date = new Date(element.date);
+                    const str_month = new Intl.DateTimeFormat('en', { month: 'short' }).format(date);
+                    const str_year = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date);
+                    const str_day = new Intl.DateTimeFormat('en', { day: 'numeric' }).format(date);
+                    var str_date = str_month + ' ' + str_day + ', ' + str_year;
+
                 	if ( typeof element.url_thumbnail === 'string' ) {
                         if ( element.url_thumbnail.length > 0 ) {
                         	str_col_width_main = 'rsp_span_9_of_12';
@@ -88,7 +94,7 @@
 
                 	str_result = str_result + '<li class="rsp_section wp_m_result">';
                 	str_result = str_result + '	<div class="rsp_group">';
-                	str_result = str_result + '		<div class="rsp_col ' + str_col_width_main + '"><div class="wp_m_metadata">' + element.hierarchy_lvl1 + ' | ' + element.date + '</div><div class="wp_m_title"><a href="' + element.url + '">' + element.title + '</a></div><div class="wp_m_content">' + element.content + '</div></div>';
+                	str_result = str_result + '		<div class="rsp_col ' + str_col_width_main + '"><div class="wp_m_metadata">' + element.hierarchy_lvl1 + '&nbsp;&nbsp;|&nbsp;&nbsp;' + str_date + '</div><div class="wp_m_title"><a href="' + element.url + '">' + element.title + '</a></div><div class="wp_m_content">' + element.content + '</div></div>';
                 	str_result = str_result + str_image;
                 	str_result = str_result + '	</div>';
                 	str_result = str_result + '</li>';
