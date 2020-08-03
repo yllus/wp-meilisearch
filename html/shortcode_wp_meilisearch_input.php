@@ -38,15 +38,37 @@
 
         if ( search_value.length == 0 && typeof results !== 'undefined' ) {
         	results.innerHTML = '';
+
+            return;
         }
 
-        let theUrl = `${baseUrl}indexes/${index}/search?q=${search_value}&attributesToHighlight=*`;
+        let theUrl = `${baseUrl}indexes/${index}/search`;
 
         if (lastRequest) { lastRequest.abort() }
         lastRequest = new XMLHttpRequest();
 
-        lastRequest.open("GET", theUrl, true);
+        lastRequest.open("POST", theUrl, true);
         lastRequest.setRequestHeader("X-Meili-API-Key", apiKey);
+        lastRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+        var bool_one_post_type_checked = false;
+        var str_filters = '';
+        var str_filters_hierarchy_lvl1 = '';
+        var arr_post_types = document.getElementsByClassName('wp_m_content_type_option_checkbox');
+        for ( var i = 0; i < arr_post_types.length; i++ ) {
+            if ( arr_post_types[i].checked == true ) {
+                if ( bool_one_post_type_checked == true ) {
+                    str_filters_hierarchy_lvl1 = str_filters_hierarchy_lvl1 + ' OR ';
+                }
+                
+                str_filters_hierarchy_lvl1 = str_filters_hierarchy_lvl1 + 'hierarchy_lvl1 = ' + arr_post_types[i].value;
+                
+                bool_one_post_type_checked = true;
+            }
+        }
+        str_filters = '(' + str_filters_hierarchy_lvl1 + ')';
+
+        var params = `{ "q": "${search_value}", "attributesToHighlight": ["*"], "filters": "${str_filters}" }`;
 
         lastRequest.onload = function (e) {
             if (lastRequest.readyState === 4 && lastRequest.status === 200) {
@@ -100,67 +122,12 @@
                 	str_result = str_result + '</li>';
 
                 	results.innerHTML = results.innerHTML + str_result;
-
-                	/*
-                    const element = {...result, ...result._formatted };
-                    delete element._formatted;
-
-                    const elem = document.createElement('li');
-                    elem.classList.add("document");
-
-                    const ol = document.createElement('ol');
-                    let image = undefined;
-
-                    for (const prop in element) {
-                        // Check if property is an image url link.
-                        if (typeof result[prop] === 'string') {
-                            if (image == undefined && result[prop].match(/^(https|http):\/\/.*(jpe?g|png|gif)(\?.*)?$/g)) {
-                                image = result[prop];
-                            }
-                        }
-
-                        const field = document.createElement('li');
-                        field.classList.add("field");
-
-                        const attribute = document.createElement('div');
-                        attribute.classList.add("attribute");
-                        attribute.innerHTML = prop;
-
-                        const content = document.createElement('div');
-                        content.classList.add("content");
-                        if (typeof (element[prop]) === "object") {
-                          content.innerHTML = JSON.stringify(element[prop]);
-                        } else {
-                          content.innerHTML = element[prop];
-                        }
-
-                        field.appendChild(attribute);
-                        field.appendChild(content);
-
-                        ol.appendChild(field);
-                    }
-
-                    elem.appendChild(ol);
-
-                    if (image != undefined) {
-                        const div = document.createElement('div');
-                        div.classList.add("image");
-
-                        const img = document.createElement('img');
-                        img.src = image;
-
-                        div.appendChild(img);
-                        elem.appendChild(div);
-                    }
-
-                    results.appendChild(elem)
-                    */
                 }
             } else {
                 console.error(lastRequest.statusText);
             }
         };
-        lastRequest.send(null);
+        lastRequest.send(params);
     }
 
     let baseUrl = '<?php echo $str_wp_meilisearch_url; ?>';

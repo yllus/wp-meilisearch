@@ -151,6 +151,25 @@ MORE INFORMATION: http://www.responsivegridsystem.com/calculator/
   padding-right: 7px;
 }
 
+#wp_m_content_types_title {
+  font-size: 1.4em;
+  font-weight: 600;
+}
+
+#wp_m_content_types_list {
+  font-size: 1.2em;
+  list-style: none;
+  margin: 0;
+}
+
+.wp_m_content_type_option_label {
+  line-height: 1.4;
+}
+
+.wp_m_content_type_option_label .wp_m_content_type_option_span {
+  margin-left: 5px;
+}
+
 em {
   color: hsl(204, 86%, 25%);
   font-style: inherit;
