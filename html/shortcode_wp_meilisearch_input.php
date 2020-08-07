@@ -1,169 +1,146 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/instantsearch.css@7/themes/algolia-min.css" />
 <link rel="stylesheet" id="wp-meilisearch-css"  href="<?php echo plugin_dir_url(__FILE__) . 'css/wp-meilisearch.css?_t=202008031929'; ?>" type="text/css" media="all" />
 
 <div class="rsp_section rsp_group">
-	<div class="rsp_col rsp_span_12_of_12">
-		<div id="wp_m_search_container">
-			<svg id="wp_m_magnify" width="36" height="36" viewBox="0 0 36 36"><path fill="#A6A6A6" d="M6.06464039,6.06458401 C2.64511987,9.48438934 2.64511987,15.0284312 6.06456334,18.4481594 C9.48432347,21.8677075 15.0282788,21.8677075 18.4480004,18.448198 C21.8677541,15.0284079 21.8677605,9.48443987 18.4480197,6.0646418 C15.028258,2.64511298 9.48431704,2.6451194 6.06464039,6.06458401 Z M21.5630375,19.4417171 L28.0606602,25.9393398 L25.9393398,28.0606602 L19.4417189,21.5630392 C14.830452,25.1324621 8.17531757,24.801292 3.94323171,20.5694685 C-0.647743904,15.9781105 -0.647743904,8.53470999 3.94330876,3.94327495 C8.53462672,-0.647758318 15.9779756,-0.647758318 20.5692935,3.94327495 C24.8012726,8.17529907 25.1325206,14.8303758 21.5630375,19.4417171 Z"></path></svg>
-			<input id="search" class="input" type="text" autofocus placeholder="">
-		</div>
-	</div>
+  <div class="rsp_col rsp_span_12_of_12">
+    <div id="wp_m_search_container">
+      <div id="searchbox" class="input"></div>
+    </div>
+  </div>
 </div>
 
+<div class="rsp_section rsp_group">
+    <div class="rsp_col rsp_span_2_of_12">
+      <div id="clear-refinements"></div>
+
+        <h2>Content Types</h2>
+        <div id="content-types-list"></div>
+
+        <?php /*
+        <div id="wp_m_content_types_title">Content Types</div>
+        <ul id="wp_m_content_types_list">
+          <?php foreach ( $arr_post_types_selected as $arr_post_type ): ?>
+        <li>
+          <label for="content-type-option-<?php echo $arr_post_type; ?>" class="wp_m_content_type_option_label">
+              <input id="content-type-option-<?php echo $arr_post_type; ?>" type="checkbox" class="wp_m_content_type_option_checkbox" value="<?php echo $arr_post_types[$arr_post_type]->labels->singular_name; ?>" checked="checked" onclick="triggerSearch();">
+              <span class="wp_m_content_type_option_span"><?php echo $arr_post_types[$arr_post_type]->label; ?></span>
+            </label>
+        </li>
+          <?php endforeach; ?>
+        </ul>
+        */ ?>
+    </div>
+
+    <div class="rsp_col rsp_span_10_of_12">
+        <div id="wp_m_stats">&nbsp;</div>
+
+        <div id="hits" style="margin: 0;">
+            <!-- documents matching requests -->
+        </div>
+
+        <div id="pagination"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@meilisearch/instant-meilisearch@v0.1.3/dist/instant-meilisearch.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/instantsearch.js@4"></script>
 <script>
-    function sanitizeHTMLEntities(str) {
-        if (str && typeof str === 'string') {
-            str = str.replace(/</g,"&lt;");
-            str = str.replace(/>/g,"&gt;");
-            str = str.replace(/&lt;em&gt;/g,"<em>");
-            str = str.replace(/&lt;\/em&gt;/g,"<\/em>");
+function getMeiliSearchQueryParameter() {
+    var sParam = 'q',
+        sPageURL = window.location.search.substring(1),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
         }
-        return str;
     }
+};
 
-    function httpGet(theUrl, apiKey) {
-        var xmlHttp = new XMLHttpRequest();
+const search = instantsearch({
+    indexName: "cfl",
+    searchClient: instantMeiliSearch(
+        "https://search.cfl.ca",
+        "<?php echo $str_wp_meilisearch_public; ?>",
+        {
+            hitsPerPage: 8,
+            limitPerRequest: 800
+        }
+    ),
+    searchFunction( helper ) {
+        var str_query = getMeiliSearchQueryParameter();
+        if ( typeof str_query !== 'undefined' ) {
+            if ( str_query.length > 0 ) {
+                /*
+                var obj_searchbox = document.querySelector("[type='search']");
+                obj_searchbox.value = str_query;
+                */
 
-        xmlHttp.open("GET", theUrl, false); // false for synchronous request
-        xmlHttp.setRequestHeader("x-Meili-API-Key", apiKey);
-        xmlHttp.send(null);
+                helper.setQuery(str_query).search();
 
-        return xmlHttp.responseText;
-    }
-
-    function getUrlParameter(sParam) {
-        var sPageURL = window.location.search.substring(1),
-            sURLVariables = sPageURL.split('&'),
-            sParameterName,
-            i;
-
-        for (i = 0; i < sURLVariables.length; i++) {
-            sParameterName = sURLVariables[i].split('=');
-
-            if (sParameterName[0] === sParam) {
-                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+                return;
             }
         }
-    };
+        
+        helper.search();
+    },
+});
 
-    let lastRequest = undefined;
-
-    function triggerSearch() {
-        var index = '<?php echo $str_wp_meilisearch_index; ?>';
-        var search_value = search.value;
-
-        if ( search_value.length == 0 ) {
-            if ( typeof results !== 'undefined' ) {
-                results.innerHTML = '';
+search.addWidgets([
+    instantsearch.widgets.searchBox({
+        container: "#searchbox", 
+        autofocus: true,
+        queryHook( query, search ) {
+            // Update our URL with the current query string.
+            if ( history.pushState ) {
+                var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?q=' + query;
+                window.history.pushState({path:newurl},'',  newurl);
             }
 
-            return;
-        }
+            search(query);
+        },
+    }),
 
-        let theUrl = `${baseUrl}indexes/${index}/search`;
+    instantsearch.widgets.clearRefinements({
+        container: "#clear-refinements"
+    }),
 
-        if (lastRequest) { lastRequest.abort() }
-        lastRequest = new XMLHttpRequest();
+    instantsearch.widgets.refinementList({
+        container: "#content-types-list",
+        attribute: "hierarchy_lvl1"
+    }),
 
-        lastRequest.open("POST", theUrl, true);
-        lastRequest.setRequestHeader("X-Meili-API-Key", apiKey);
-        lastRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-        var bool_one_post_type_checked = false;
-        var str_filters = '';
-        var str_filters_hierarchy_lvl1 = '';
-        var arr_post_types = document.getElementsByClassName('wp_m_content_type_option_checkbox');
-        for ( var i = 0; i < arr_post_types.length; i++ ) {
-            if ( arr_post_types[i].checked == true ) {
-                if ( bool_one_post_type_checked == true ) {
-                    str_filters_hierarchy_lvl1 = str_filters_hierarchy_lvl1 + ' OR ';
-                }
-                
-                str_filters_hierarchy_lvl1 = str_filters_hierarchy_lvl1 + 'hierarchy_lvl1 = ' + arr_post_types[i].value;
-                
-                bool_one_post_type_checked = true;
-            }
-        }
-        if ( str_filters_hierarchy_lvl1.length > 0 ) {
-            str_filters = '"filters": "(' + str_filters_hierarchy_lvl1 + ')", ';
-        }
-
-        if ( history.pushState ) {
-            var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?q=' + search_value;
-            window.history.pushState({path:newurl},'',newurl);
-        }
-
-        var params = `{ "q": "${search_value}", ${str_filters} "attributesToHighlight": ["*"] }`;
-
-        lastRequest.onload = function (e) {
-            if (lastRequest.readyState === 4 && lastRequest.status === 200) {
-                let sanitizedResponseText = sanitizeHTMLEntities(lastRequest.responseText);
-                let httpResults = JSON.parse(sanitizedResponseText);
-                results.innerHTML = '';
-
-                let processingTimeMs = httpResults.processingTimeMs;
-                let numberOfDocuments = httpResults.hits.length;
-
-                var num_start_results = httpResults.offset;
-                var num_end_results = numberOfDocuments;
-
-                if ( num_end_results > 0 ) {
-                	if ( num_start_results == 0 ) {
-                		num_start_results = num_start_results + 1;
-                	}
-                }
-
-                document.getElementById('wp_m_stats').innerHTML = 'Showing results ' + num_start_results + ' - ' + num_end_results + ' for: “' + httpResults.query + '“ (' + httpResults.nbHits + ' total)';
-
-                //time.innerHTML = `${processingTimeMs}ms`;
-                //count.innerHTML = `${numberOfDocuments}`;
-
-                for ( result of httpResults.hits ) {
-                	const element = {...result, ...result._formatted };
-                    delete element._formatted;
-
-                	var str_result = '';
-                	var str_image = '';
-                	var str_col_width_main = 'rsp_span_12_of_12';
-
-                    var date = new Date(element.date);
-                    const str_month = new Intl.DateTimeFormat('en', { month: 'short' }).format(date);
-                    const str_year = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date);
-                    const str_day = new Intl.DateTimeFormat('en', { day: 'numeric' }).format(date);
-                    var str_date = str_month + ' ' + str_day + ', ' + str_year;
-
-                	if ( typeof element.url_thumbnail === 'string' ) {
-                        if ( element.url_thumbnail.length > 0 ) {
-                        	str_col_width_main = 'rsp_span_9_of_12';
-                        	str_image = '<div class="rsp_col rsp_span_3_of_12 wp_m_image"><img src="' + element.url_thumbnail + '"></div>';
-                        }
-                    }
-
-                	str_result = str_result + '<li class="rsp_section wp_m_result">';
-                	str_result = str_result + '	<div class="rsp_group">';
-                	str_result = str_result + '		<div class="rsp_col ' + str_col_width_main + '"><div class="wp_m_metadata">' + element.hierarchy_lvl1 + '&nbsp;&nbsp;|&nbsp;&nbsp;' + str_date + '</div><div class="wp_m_title"><a href="' + element.url + '">' + element.title + '</a></div><div class="wp_m_content">' + element.content + '</div></div>';
-                	str_result = str_result + str_image;
-                	str_result = str_result + '	</div>';
-                	str_result = str_result + '</li>';
-
-                	results.innerHTML = results.innerHTML + str_result;
-                }
-            } else {
-                console.error(lastRequest.statusText);
-            }
-        };
-        lastRequest.send(params);
+  instantsearch.widgets.hits({
+    container: "#hits",
+    templates: {
+      item: `
+      <div class="wp_m_result">
+        <div class="">
+          <div class="wp_m_image">
+            {{#url_thumbnail}}
+              <a href="{{ url }}"><img src="{{ url_thumbnail }}"></a>
+            {{/url_thumbnail}}
+            {{^url_thumbnail}}
+              <a href="{{ url }}"><img src="/wp-content/themes/cfl.ca/images/og-image-default.jpg?_t=201902271522"></a>
+            {{/url_thumbnail}}
+          </div>
+          <div class="wp_m_metadata">{{ hierarchy_lvl1 }}&nbsp;&nbsp;|&nbsp;&nbsp;{{ date }}</div>
+          <div class="Xwp_m_title"><a href="{{ url }}">{{#helpers.highlight}}{ "attribute": "title" }{{/helpers.highlight}}</a></div>
+          <div class="Xwp_m_content">{{#helpers.snippet}}{ "attribute": "content", "highlightedTagName": "mark" }{{/helpers.snippet}}</div>
+        </div>
+      </div>
+      `
     }
+  }),
+  instantsearch.widgets.pagination({
+    container: "#pagination"
+  })
+]);
 
-    let baseUrl = '<?php echo $str_wp_meilisearch_url; ?>';
-    let apiKey = '<?php echo $str_wp_meilisearch_public; ?>';
+search.start();
 
-    // Ready in our search parameter from the URL (if there is one).
-    var str_q = getUrlParameter('q');
-    if ( typeof str_q !== 'undefined' ) {
-        search.value = str_q;
-    }
-
-    search.oninput = triggerSearch;
-
-    triggerSearch();
-  </script>
+</script>

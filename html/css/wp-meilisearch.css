@@ -101,16 +101,16 @@ MORE INFORMATION: http://www.responsivegridsystem.com/calculator/
   position: relative;
 }
 
-#wp_m_search_container #wp_m_magnify { 
-  position: absolute; 
-  top: 9px; 
-  left: 9px;
+#wp_m_search_container .ais-SearchBox-submitIcon { 
+  height: 28px;
+  width: 28px;
+  left: 20px;
 }
 
-#wp_m_search_container #search { 
+#wp_m_search_container .ais-SearchBox-input { 
   font-size: 36px; 
   width: 100%; 
-  text-indent: 45px;
+  text-indent: 25px;
 }
 
 #wp_m_stats {
@@ -120,15 +120,12 @@ MORE INFORMATION: http://www.responsivegridsystem.com/calculator/
 
 .wp_m_result {
   list-style-type: none; 
-  padding-top: 20px; 
-  margin-top: 20px; 
-  border-top: 2px solid #eeeeee;
 }
 
 .wp_m_result .wp_m_metadata {
   font-size: 0.8em;
   color: #77797a;
-  margin-bottom: 4px;
+  margin-top: 6px;
 }
 
 .wp_m_result .wp_m_title {
@@ -139,12 +136,12 @@ MORE INFORMATION: http://www.responsivegridsystem.com/calculator/
 }
 
 .wp_m_result .wp_m_image {
-  padding-top: 30px;
+  text-align: center;
 }
 
 .wp_m_result .wp_m_image img {
   max-width: 100%;
-  max-height: 150px;
+  max-height: 103px;
 }
 
 .wp_m_result .rsp_span_9_of_12 .wp_m_title, .wp_m_result .rsp_span_9_of_12 .wp_m_content {
