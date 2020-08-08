@@ -113,9 +113,22 @@ MORE INFORMATION: http://www.responsivegridsystem.com/calculator/
   text-indent: 25px;
 }
 
-#wp_m_stats {
-  font-size: 18px;
+#wp_m_results .ais-Stats-text {
+  font-size: 1em  ;
   font-style: italic;
+  padding-left: 55px;
+}
+
+#wp_m_facets h3 {
+  margin-bottom: 0;
+}
+
+#wp_m_facets ul {
+  margin-left: 0;
+}
+
+#wp_m_facets ul .ais-RefinementList-labelText {
+  text-transform: capitalize;
 }
 
 .wp_m_result {
